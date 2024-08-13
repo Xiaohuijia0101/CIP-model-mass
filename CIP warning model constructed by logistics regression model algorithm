@@ -1,1 +1,101 @@
+# Set up your own work directory
+setwd("D:\\A-CIP\\CIP\\Mass\\Training cohort")
+
+# Read data
+Mass<-read.table("Mass.txt",header=T,sep="\t")
+
+# Convert data to factor format 
+Mass$SERPINA5<-factor(Mass$SERPINA5,levels=c("0","1"))
+Mass$COL1A2<-factor(Mass$COL1A2,levels=c("0","1"))
+Mass$SHAP<-factor(Mass$SHAP,levels=c("0","1"))
+Mass$TUBA4A<-factor(Mass$TUBA4A,levels=c("0","1"))
+Mass$AKAP6<-factor(Mass$AKAP6,levels=c("0","1"))
+
+Mass$CIP<-factor(Mass$CIP,levels=c("0","1"))
+
+# Logistics regression model
+fm<-glm(CIP~SERPINA5+COL1A2+SHAP+TUBA4A+AKAP6, data=Mass, family="binomial")
+
+summary(fm)
+exp(coef(fm))
+exp(confint(fm))
+library(rms)
+install.packages("rms")
+CIP_occurence <- Mass$CIP
+SERPINA5 <- Mass$SERPINA5
+COL1A2<- Mass$COL1A2
+SHAP<- Mass$SHAP
+TUBA4A<- Mass$TUBA4A
+AKAP6<- Mass$AKAP6
+CIP<- Mass$CIP
+
+library(lrm)
+install.packages("lrm")
+
+ddist <- datadist(SERPINA5,COL1A2,SHAP,TUBA4A,AKAP6,CIP)
+options(datadist = 'ddist')
+fit1 <- lrm(CIP_occurence ~ SERPINA5+COL1A2+SHAP+TUBA4A+AKAP6 )
+
+nom <- nomogram (fit1, fun = plogis,fun.at = c (.001, .01, .05, seq(.1,.9, by =.1), .95, .99, .999), lp = F, funlabel = "Risk")
+pdf("nom.pdf")
+plot(nom,col.grid=c("tomato","gray"),xfrac=0.25)
+dev.off()
+fit1
+
+library(DynNom)
+install.packages("DynNom")
+DynNom(fm,rt)
+
+install.packages("rsconnect")
+library(rsconnect)
+
+rsconnect::setAccountInfo(name='mass-cip', 
+                      token='39F9100151C38B80E399F74111E68B3B', 
+                   secret='6OrSHywi03KK6YqK5ElyrISO/tSyssSLLSrVTWLu')
+DNbuilder(fm)
+
+# Plot ROC curve
+install.packages("pROC")
+library("pROC")
+fit2 <-glm(CIP~SERPINA5+COL1A2+SHAP+TUBA4A+AKAP6,data=Mass,family="binomial")
+pre <- predict(fit2,type='response')
+plot.roc(Mass$CIP, pre,
+         main="ROC Curve", percent=TRUE,
+         print.auc=TRUE,
+         ci=TRUE, of="thresholds",
+         thresholds="best",
+         print.thres="best")
+
+# Plot calibration curve
+install.packages("rms")
+install.packages("calibrate")
+fit2 <- glm(CIP_occurence ~ SERPINA5+COL1A2+SHAP+TUBA4A+AKAP6, x = TRUE,y = TRUE)
+cal <- calibrate(fit2,  method = "boot", B = 30)
+plot(cal,xlab = "Nomogram Predicted CIP", ylab = "Actual CIP",main = "Calibration Curve")
+
+# Plot DCA curve
+install.packages("rmda")
+library(rmda)
+
+simpleSERPINA5<- decision_curve(CIP~SERPINA5,data = Mass, family = binomial(link ='logit'),
+                  thresholds= seq(0,1, by = 0.01),confidence.intervals =0.95)
+simpleAKAP6<- decision_curve(CIP~AKAP6,data = Mass, family = binomial(link ='logit'),
+              thresholds= seq(0,1, by = 0.01),confidence.intervals =0.95)
+simpleTUBA4A<- decision_curve(CIP~TUBA4A,data = Mass, family = binomial(link ='logit'),
+               thresholds= seq(0,1, by = 0.01),confidence.intervals =0.95)
+simpleCOL1A2<- decision_curve(CIP~COL1A2,data = Mass, family = binomial(link ='logit'),
+               thresholds= seq(0,1, by = 0.01),confidence.intervals =0.95)
+simpleSHAP<- decision_curve(CIP~SHAP,data = Mass, family = binomial(link ='logit'),
+              thresholds= seq(0,1, by = 0.01),confidence.intervals =0.95)
+
+complex<- decision_curve (CIP~ SERPINA5+COL1A2+SHAP+TUBA4A+AKAP6, data = Mass,
+         family = binomial(link ='logit'), thresholds = seq(0,1, by = 0.01),
+         confidence.intervals= 0.95)
+List<- list(simpleSERPINA5, simpleCOL1A2, simpleSHAP, simpleTUBA4A, simpleAKAP6, complex)
+
+plot_decision_curve(List,curve.names= c('SERPINA5','COL1A2','SHAP','TUBA4A','AKAP6','nomogram'),
+cost.benefit.axis =FALSE, col = c ('#CCFF00FF', '#33FF00FF', '#f2921d', '#2d4059', '#139487', '#FF0000FF'),
+confidence.intervals =FALSE,standardize = FALSE)
+
+
 
