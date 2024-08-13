@@ -1,3 +1,5 @@
+#2. Code of online interactive risk warning model which is constructed by logistics regression model algorithm
+
 # Set up your own work directory
 setwd("D:\\A-CIP\\CIP\\Mass\\Training cohort")
 
