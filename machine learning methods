@@ -1,1 +1,85 @@
+#1. Code for nine machine learning methods, including random forest, SVM, LASSO regression, logistic regression, XGBoost, glmBoost, naïve bayes, GBM, and LDA
+
+# Load the necessary libraries
+library(caret)
+library(glmnet) # Lasso and Ridge
+library(e1071) # SVM and NaiveBayes
+library(MASS) # LDA
+library(plsRglm) # PLSRglm
+library(randomForest) # RandomForest
+library(gbm) # GBM
+library(xgboost) # XGBoost
+library(mboost) # glmBoost
+
+# Create a sample data frame
+set.seed(0123)
+setwd("C:\\Users\\Desktop\\jiaxiaohui\\ machine learning ")
+df<-read.table("Mass.txt",header=T,sep="\t")
+df$SERPINA5<-factor(df$SERPINA5,levels=c("0","1"))
+df$COL1A2<-factor(df$COL1A2,levels=c("0","1"))
+df$ProSHAP<-factor(df$ProSHAP,levels=c("0","1"))
+df$TUBA4A<-factor(df$TUBA4A,levels=c("0","1"))
+df$AKAP6<-factor(df$AKAP6,levels=c("0","1"))
+df$CIP<-factor(df$CIP,levels=c("0","1"))
+str(df)
+# Split data set
+set.seed(42)
+trainIndex <- createDataPartition(df$CIP, p = 0.7, list = FALSE)
+trainData <- df[trainIndex,]
+testData <- df[-trainIndex,]
+
+# 1. Lasso regression
+lasso_model <- train(CIP ~ ., data = trainData, method = "glmnet", tuneGrid = expand.grid(alpha = 1, lambda = 0.01))
+lasso_pred <- predict(lasso_model, newdata = testData)
+lasso_accuracy <- sum(lasso_pred == testData$CIP) / nrow(testData)
+print(paste('Lasso Accuracy:', lasso_accuracy))
+
+# 2. SVM
+svm_model <- train(CIP ~ ., data = trainData, method = "svmRadial")
+svm_pred <- predict(svm_model, newdata = testData)
+svm_accuracy <- sum(svm_pred == testData$CIP) / nrow(testData)
+print(paste('SVM Accuracy:', svm_accuracy))
+
+# 3. glmBoost
+glmboost_model <- train(CIP ~ ., data = trainData, method = "glmboost")
+glmboost_pred <- predict(glmboost_model, newdata = testData)
+glmboost_accuracy <- sum(glmboost_pred == testData$CIP) / nrow(testData)
+print(paste('glmBoost Accuracy:', glmboost_accuracy))
+
+# 4. LDA
+lda_model <- train(CIP ~ ., data = trainData, method = "lda")
+lda_pred <- predict(lda_model, newdata = testData)
+lda_accuracy <- sum(lda_pred == testData$CIP) / nrow(testData)
+print(paste('LDA Accuracy:', lda_accuracy))
+
+# 5. GLMBoost
+plsRglm_model <- train(CIP ~ ., data = trainData, method = "plsRglm")
+plsRglm_pred <- predict(plsRglm_model, newdata = testData)
+plsRglm_accuracy <- sum(plsRglm_pred == testData$CIP) / nrow(testData)
+print(paste('PLS-GLM Accuracy:', plsRglm_accuracy))
+
+# 6. Random Forest
+rf_model <- train(CIP ~ ., data = trainData, method = "rf")
+rf_pred <- predict(rf_model, newdata = testData)
+rf_accuracy <- sum(rf_pred == testData$CIP) / nrow(testData)
+print(paste('Random Forest Accuracy:', rf_accuracy))
+
+# 7. GBM
+gbm_model <- train(CIP ~ ., data = trainData, method = "gbm", verbose = FALSE)
+gbm_pred <- predict(gbm_model, newdata = testData)
+gbm_accuracy <- sum(gbm_pred == testData$CIP) / nrow(testData)
+print(paste('GBM Accuracy:', gbm_accuracy))
+
+# 8. XGBoost
+xgb_model <- train(CIP ~ ., data = trainData, method = "xgbTree")
+xgb_pred <- predict(xgb_model, newdata = testData)
+xgb_accuracy <- sum(xgb_pred == testData$CIP) / nrow(testData)
+print(paste('XGBoost Accuracy:', xgb_accuracy))
+
+# 9.Naive Bayes
+nb_model <- train(CIP ~ ., data = trainData, method = "naive_bayes")
+nb_pred <- predict(nb_model, newdata = testData)
+nb_accuracy <- sum(nb_pred == testData$CIP) / nrow(testData)
+print(paste('Naive Bayes Accuracy:', nb_accuracy))
+
 
