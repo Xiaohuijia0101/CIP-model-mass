@@ -1,11 +1,5 @@
 #2. Code of online interactive risk warning model which is constructed by logistics regression model algorithm
 
-# Set up your own work directory
-setwd("D:\\A-CIP\\CIP\\Mass\\Training cohort")
-
-# Read data
-Mass<-read.table("Mass.txt",header=T,sep="\t")
-
 # Convert data to factor format 
 Mass$SERPINA5<-factor(Mass$SERPINA5,levels=c("0","1"))
 Mass$COL1A2<-factor(Mass$COL1A2,levels=c("0","1"))
